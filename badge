@@ -6,7 +6,7 @@
 set -euo pipefail
 
 BADGE_SCRIPT="/tmp/led-name-badge-ls32/led-badge-11x44.py"
-PYTHON="python3"
+PYTHON="${BADGE_PYTHON:-$(which python3)}"
 export DYLD_LIBRARY_PATH="/opt/homebrew/lib"
 
 # ── defaults ────────────────────────────────────────────────────────────────
