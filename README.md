@@ -73,6 +73,7 @@ The fastest way to get a good-looking result. Explicit flags override preset val
 | `chill` | scroll-left | 1 | off | off | 50% | Ambient / idle |
 | `party` | animation | 5 | off | on | 100% | Celebration |
 | `done` | still-centered | 1 | off | off | 75% | Task complete |
+| `fire` | laser | 8 | on | on | 100% | Everything is on fire |
 
 ```bash
 badge --preset done "Shit done"

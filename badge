@@ -33,6 +33,7 @@ apply_preset() {
     chill)  MODE=0; SPEED=1; BLINK=0; ANTS=0; BRIGHTNESS=50  ;;
     party)  MODE=5; SPEED=5; BLINK=0; ANTS=1; BRIGHTNESS=100 ;;
     done)   MODE=4; SPEED=1; BLINK=0; ANTS=0; BRIGHTNESS=75  ;;
+    fire)   MODE=8; SPEED=8; BLINK=1; ANTS=1; BRIGHTNESS=100 ;;
     *)
       echo "Unknown preset: $1. Use --list-presets to see available." >&2
       exit 1
@@ -85,6 +86,7 @@ PRESETS
   chill    Slow scroll, 50% brightness             (ambient/idle)
   party    Animation mode, animated border         (celebration)
   done     Still centered, 75% brightness          (task complete)
+  fire     Laser, max speed, blink, border         (everything is on fire)
 
 EXAMPLES
   badge "Hello World"
