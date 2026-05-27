@@ -6,7 +6,7 @@
 set -euo pipefail
 
 BADGE_SCRIPT="/tmp/led-name-badge-ls32/led-badge-11x44.py"
-PYTHON="${BADGE_PYTHON:-$(which python3)}"
+PYTHON="/Users/ianaya89/.local/share/mise/installs/python/3.14/bin/python3"
 export DYLD_LIBRARY_PATH="/opt/homebrew/lib"
 
 # ── defaults ────────────────────────────────────────────────────────────────
@@ -18,8 +18,27 @@ ANTS=0
 TYPE="11x44"
 METHOD="auto"
 DEVICE_ID="auto"
+PRESET=""
 LIST_ICONS=0
+LIST_PRESETS=0
 SHOW_HELP=0
+
+# ── presets ──────────────────────────────────────────────────────────────────
+apply_preset() {
+  case "$1" in
+    scroll) MODE=0; SPEED=3; BLINK=0; ANTS=0; BRIGHTNESS=100 ;;
+    still)  MODE=4; SPEED=1; BLINK=0; ANTS=0; BRIGHTNESS=100 ;;
+    alert)  MODE=0; SPEED=7; BLINK=1; ANTS=1; BRIGHTNESS=100 ;;
+    laser)  MODE=8; SPEED=6; BLINK=0; ANTS=0; BRIGHTNESS=100 ;;
+    chill)  MODE=0; SPEED=1; BLINK=0; ANTS=0; BRIGHTNESS=50  ;;
+    party)  MODE=5; SPEED=5; BLINK=0; ANTS=1; BRIGHTNESS=100 ;;
+    done)   MODE=4; SPEED=1; BLINK=0; ANTS=0; BRIGHTNESS=75  ;;
+    *)
+      echo "Unknown preset: $1. Use --list-presets to see available." >&2
+      exit 1
+      ;;
+  esac
+}
 
 usage() {
   cat <<EOF
@@ -30,6 +49,9 @@ Use :path/to/image.png: to embed custom images.
 Separate per-message values with commas (e.g. -s 1,4,8).
 
 OPTIONS
+  -p, --preset PRESET       Named preset (see --list-presets). Explicit flags
+                              override preset values.
+      --list-presets         List available presets and exit
   -s, --speed SPEED         Scroll speed 1-8 (default: $SPEED)
                               per-message: -s 1,4,8
   -B, --brightness PERCENT  25 | 50 | 75 | 100 (default: $BRIGHTNESS)
@@ -55,16 +77,24 @@ OPTIONS
   -l, --list-icons          List built-in icon names and exit
   -h, --help                Show this help
 
+PRESETS
+  scroll   Scroll left, speed 3, full brightness  (default feel)
+  still    Static centered, dim speed, full brightness
+  alert    Fast scroll, blinking, animated border  (errors/warnings)
+  laser    Laser mode, speed 6                     (dramatic entrance)
+  chill    Slow scroll, 50% brightness             (ambient/idle)
+  party    Animation mode, animated border         (celebration)
+  done     Still centered, 75% brightness          (task complete)
+
 EXAMPLES
   badge "Hello World"
-  badge -s 5 -m 8 "LASER"
-  badge -m 4 -B 50 "still text"
-  badge -a 1 -b 1 "blinking border"
-  badge -m 5 -s 2 "  :heart2:    :HEART2:"
-  badge -s 1,8 -m 0,4 "fast scroll" "still msg"
-  badge "I :HEART2: you"
-  badge ":ball: score: 42"
-  badge ":path/to/logo.png: my badge"
+  badge --preset alert "DEPLOY FAILED"
+  badge --preset done "Shit done"
+  badge --preset laser "LGTM"
+  badge --preset party "I :HEART2: you"
+  badge --preset alert -b 0 "quiet alert"       # override preset blink
+  badge -s 1,8 -m 0,4 "slow scroll" "fast msg"  # multi-message
+  badge ":path/to/logo.png: my badge"            # custom image
 
 ICONS
   :ball: :happy: :happy2: :heart: :HEART: :heart2: :HEART2:
@@ -73,21 +103,40 @@ ICONS
 EOF
 }
 
+list_presets() {
+  cat <<EOF
+PRESET     MODE            SPEED  BLINK  ANTS  BRIGHTNESS
+scroll     scroll-left     3      off    off   100%
+still      still-centered  1      off    off   100%
+alert      scroll-left     7      on     on    100%
+laser      laser           6      off    off   100%
+chill      scroll-left     1      off    off   50%
+party      animation       5      off    on    100%
+done       still-centered  1      off    off   75%
+EOF
+}
+
 MESSAGES=()
-EXTRA_ARGS=()
+# Track which flags were explicitly set so they override preset
+EXPLICIT_SPEED=0; EXPLICIT_BRIGHTNESS=0; EXPLICIT_MODE=0
+EXPLICIT_BLINK=0; EXPLICIT_ANTS=0
+SAVED_SPEED=$SPEED; SAVED_BRIGHTNESS=$BRIGHTNESS; SAVED_MODE=$MODE
+SAVED_BLINK=$BLINK; SAVED_ANTS=$ANTS
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -s|--speed)        SPEED="$2";        shift 2 ;;
-    -B|--brightness)   BRIGHTNESS="$2";   shift 2 ;;
-    -m|--mode)         MODE="$2";         shift 2 ;;
-    -b|--blink)        BLINK="$2";        shift 2 ;;
-    -a|--ants)         ANTS="$2";         shift 2 ;;
-    -t|--type)         TYPE="$2";         shift 2 ;;
-    -M|--method)       METHOD="$2";       shift 2 ;;
-    -D|--device-id)    DEVICE_ID="$2";    shift 2 ;;
-    -l|--list-icons)   LIST_ICONS=1;      shift ;;
-    -h|--help)         SHOW_HELP=1;       shift ;;
+    -p|--preset)       PRESET="$2";                          shift 2 ;;
+    --list-presets)    LIST_PRESETS=1;                        shift ;;
+    -s|--speed)        SPEED="$2";        EXPLICIT_SPEED=1;   shift 2 ;;
+    -B|--brightness)   BRIGHTNESS="$2";   EXPLICIT_BRIGHTNESS=1; shift 2 ;;
+    -m|--mode)         MODE="$2";         EXPLICIT_MODE=1;    shift 2 ;;
+    -b|--blink)        BLINK="$2";        EXPLICIT_BLINK=1;   shift 2 ;;
+    -a|--ants)         ANTS="$2";         EXPLICIT_ANTS=1;    shift 2 ;;
+    -t|--type)         TYPE="$2";                             shift 2 ;;
+    -M|--method)       METHOD="$2";                           shift 2 ;;
+    -D|--device-id)    DEVICE_ID="$2";                        shift 2 ;;
+    -l|--list-icons)   LIST_ICONS=1;                          shift ;;
+    -h|--help)         SHOW_HELP=1;                           shift ;;
     -*)
       echo "Unknown option: $1" >&2
       usage >&2
@@ -97,14 +146,22 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ $SHOW_HELP -eq 1 ]]; then
-  usage
-  exit 0
-fi
+if [[ $SHOW_HELP -eq 1 ]]; then usage; exit 0; fi
+if [[ $LIST_PRESETS -eq 1 ]]; then list_presets; exit 0; fi
 
 if [[ $LIST_ICONS -eq 1 ]]; then
   sudo env DYLD_LIBRARY_PATH="$DYLD_LIBRARY_PATH" $PYTHON "$BADGE_SCRIPT" -l
   exit 0
+fi
+
+# Apply preset, then re-apply any explicit flags on top
+if [[ -n "$PRESET" ]]; then
+  apply_preset "$PRESET"
+  [[ $EXPLICIT_SPEED -eq 1 ]]      && SPEED=$SAVED_SPEED
+  [[ $EXPLICIT_BRIGHTNESS -eq 1 ]] && BRIGHTNESS=$SAVED_BRIGHTNESS
+  [[ $EXPLICIT_MODE -eq 1 ]]       && MODE=$SAVED_MODE
+  [[ $EXPLICIT_BLINK -eq 1 ]]      && BLINK=$SAVED_BLINK
+  [[ $EXPLICIT_ANTS -eq 1 ]]       && ANTS=$SAVED_ANTS
 fi
 
 if [[ ${#MESSAGES[@]} -eq 0 ]]; then

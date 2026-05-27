@@ -60,15 +60,39 @@ source ~/.zshrc
 badge [OPTIONS] "message1" ["message2" ...]
 ```
 
+### Presets
+
+The fastest way to get a good-looking result. Explicit flags override preset values.
+
+| Preset | Mode | Speed | Blink | Ants | Brightness | Use for |
+|--------|------|-------|-------|------|------------|---------|
+| `scroll` | scroll-left | 3 | off | off | 100% | Default feel |
+| `still` | still-centered | 1 | off | off | 100% | Static display |
+| `alert` | scroll-left | 7 | on | on | 100% | Errors / warnings |
+| `laser` | laser | 6 | off | off | 100% | Dramatic entrance |
+| `chill` | scroll-left | 1 | off | off | 50% | Ambient / idle |
+| `party` | animation | 5 | off | on | 100% | Celebration |
+| `done` | still-centered | 1 | off | off | 75% | Task complete |
+
+```bash
+badge --preset done "Shit done"
+badge --preset alert "DEPLOY FAILED"
+badge --preset laser "LGTM"
+badge --preset alert -b 0 "quiet alert"   # override preset blink
+badge --list-presets                       # full preset table
+```
+
 ### Options
 
 | Flag | Long | Values | Default | Description |
 |------|------|--------|---------|-------------|
+| `-p` | `--preset` | preset name | — | Named preset (see above). |
+| | `--list-presets` | — | — | Print preset table and exit. |
 | `-s` | `--speed` | `1`–`8` | `3` | Scroll speed. Comma-separated per message. |
 | `-B` | `--brightness` | `25`, `50`, `75`, `100` | `100` | Display brightness (%). |
-| `-m` | `--mode` | `0`–`10` | — | Display mode (see below). Comma-separated per message. |
-| `-b` | `--blink` | `0`, `1` | — | Blink the message. Comma-separated per message. |
-| `-a` | `--ants` | `0`, `1` | — | Animated border ("marching ants"). Comma-separated per message. |
+| `-m` | `--mode` | `0`–`10` | `0` | Display mode (see below). Comma-separated per message. |
+| `-b` | `--blink` | `0`, `1` | `0` | Blink the message. Comma-separated per message. |
+| `-a` | `--ants` | `0`, `1` | `0` | Animated border ("marching ants"). Comma-separated per message. |
 | `-t` | `--type` | `11x44`, `12x48` | `11x44` | Badge display type. |
 | `-M` | `--method` | `auto`, `hidapi`, `usb` | `auto` | Communication method. |
 | `-D` | `--device-id` | `auto`, `<id>` | `auto` | Target a specific device. |
@@ -94,52 +118,15 @@ badge [OPTIONS] "message1" ["message2" ...]
 
 ## Examples
 
-Simple message:
-
 ```bash
 badge "Hello World"
-```
-
-Laser mode at speed 5:
-
-```bash
-badge -s 5 -m 8 "LASER"
-```
-
-Still, centered, half brightness:
-
-```bash
-badge -m 4 -B 50 "still text"
-```
-
-Blinking with animated border:
-
-```bash
-badge -a 1 -b 1 "blinking border"
-```
-
-Animation mode with built-in icons:
-
-```bash
-badge -m 5 -s 2 "  :heart2:    :HEART2:"
-```
-
-Two messages with different speeds and modes:
-
-```bash
-badge -s 1,8 -m 0,4 "slow scroll" "fast still"
-```
-
-Embed an icon inline:
-
-```bash
-badge "I :HEART2: you"
-```
-
-Use a custom image as a prefix:
-
-```bash
-badge ":path/to/logo.png: my text"
+badge --preset done "Shit done"
+badge --preset alert "DEPLOY FAILED"
+badge --preset laser "LGTM"
+badge --preset party "I :HEART2: you"
+badge --preset alert -b 0 "quiet alert"       # override preset blink
+badge -s 1,8 -m 0,4 "slow scroll" "fast msg"  # multi-message
+badge ":path/to/logo.png: my text"             # custom image
 ```
 
 ---
