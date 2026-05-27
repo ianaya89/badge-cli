@@ -103,7 +103,7 @@ if [[ $SHOW_HELP -eq 1 ]]; then
 fi
 
 if [[ $LIST_ICONS -eq 1 ]]; then
-  sudo $PYTHON "$BADGE_SCRIPT" -l
+  sudo env DYLD_LIBRARY_PATH="$DYLD_LIBRARY_PATH" $PYTHON "$BADGE_SCRIPT" -l
   exit 0
 fi
 
@@ -114,7 +114,7 @@ if [[ ${#MESSAGES[@]} -eq 0 ]]; then
 fi
 
 CMD=(
-  sudo $PYTHON "$BADGE_SCRIPT"
+  sudo env DYLD_LIBRARY_PATH="$DYLD_LIBRARY_PATH" $PYTHON "$BADGE_SCRIPT"
   -t "$TYPE"
   -M "$METHOD"
   -D "$DEVICE_ID"
